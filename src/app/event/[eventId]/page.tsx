@@ -123,6 +123,7 @@ export default function PublicEventPage({ params }: PublicEventPageProps) {
       <div className="bg-slate-900 py-3 px-6 relative z-30">
         <div className="max-w-xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Zlucky" className="h-8 rounded-lg" />
             <span className="text-xl font-black text-white tracking-tighter italic">ZLUCKY</span>
           </div>
           <div className="flex items-center gap-3">

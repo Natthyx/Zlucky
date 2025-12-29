@@ -10,7 +10,8 @@ export default function LandingPage() {
       <div className="bg-slate-900 py-3 px-6 relative z-30">
         <div className="max-w-xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl font-black text-white tracking-tighter italic">ZLUCKY</span>
+            <img src="/logo.png" alt="Zlucky" className="h-8 rounded-lg" />
+            <span className="text-xl font-black text-white tracking-tighter italic">LUCKY</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Created by</span>
