@@ -1,0 +1,27 @@
+# Firebase Client Config
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+
+# Firebase Admin SDK (Server Side)
+FIREBASE_ADMIN_PROJECT_ID=
+FIREBASE_ADMIN_CLIENT_EMAIL=
+FIREBASE_ADMIN_PRIVATE_KEY=
+
+# Supabase Storage (QR Codes)
+# IMPORTANT: Create a public bucket named "events" in your Supabase dashboard.
+NEXT_PUBLIC_SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Chapa Payment Gateway
+CHAPA_SECRET_KEY=
+CHAPA_WEBHOOK_SECRET=
+
+# App Configuration
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Cron Security
+CRON_SECRET= # Run `npm run generate-secret` to get a secure value

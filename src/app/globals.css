@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", var(--font-geist-sans);
+  
+  --color-primary: var(--color-indigo-600);
+  --color-primary-foreground: white;
+  
+  --color-available: var(--color-emerald-500);
+  --color-reserved: var(--color-amber-500);
+  --color-sold: var(--color-slate-300);
+  --color-winner: var(--color-indigo-600);
+  
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  
+  --shadow-premium: 0 8px 30px rgba(0, 0, 0, 0.04);
+}
+
+:root {
+  --background: #fdfdfd;
+  --foreground: #020617;
+  --card: #ffffff;
+  --card-foreground: #020617;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.shadow-premium {
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+}

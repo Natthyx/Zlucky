@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin(adminId) {
+      return isAuthenticated() && request.auth.uid == adminId;
+    }
+    
+    function isEventOwner(eventId) {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/events/$(eventId)).data.adminId == request.auth.uid;
+    }
+    
+    // Admins Collection
+    match /admins/{adminId} {
+      allow read: if isAdmin(adminId);
+      allow create: if isAuthenticated() && request.auth.uid == adminId;
+      allow update: if isAdmin(adminId);
+      allow delete: if false; 
+    }
+    
+    // Events Collection
+    match /events/{eventId} {
+      allow read: if true; // Public can see event info
+      allow create: if isAuthenticated();
+      allow update: if isEventOwner(eventId);
+      allow delete: if isEventOwner(eventId);
+    }
+    
+    // Tickets Collection
+    match /tickets/{ticketId} {
+      allow read: if true; // Public can see ticket status
+      allow write: if false; // Only via Cloud Functions or Admin SDK
+    }
+    
+    // Payments Collection
+    match /payments/{paymentId} {
+      // Allow read if user is the buyer (by email) or the event owner
+      allow read: if (isAuthenticated() && (resource.data.buyerEmail == request.auth.token.email || isEventOwner(resource.data.eventId)));
+      allow write: if false; // Only via Admin SDK
+    }
+    
+    // Winners Collection
+    match /winners/{winnerId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // System Config
+    match /systemConfig/{doc} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+  }
+}
