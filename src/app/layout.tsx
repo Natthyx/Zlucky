@@ -16,6 +16,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Zlucky - Lucky Winner System",
   description: "Secure and transparent ticket system for your events.",
+  icons: {
+    icon: "/zlucky-logo.png",
+    apple: "/zlucky-logo.png",
+  },
 };
 
 export default function RootLayout({

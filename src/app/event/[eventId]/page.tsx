@@ -119,6 +119,20 @@ export default function PublicEventPage({ params }: PublicEventPageProps) {
 
   return (
     <main className="min-h-screen bg-slate-50 pb-20">
+      {/* Branding Bar */}
+      <div className="bg-slate-900 py-3 px-6 relative z-30">
+        <div className="max-w-xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Zlucky" className="h-8 rounded-lg" />
+            <span className="text-xl font-black text-white tracking-tighter italic">ZLUCKY</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Created by</span>
+            <img src="/sms_logo.png" alt="SMS Technologies" className="h-5 brightness-110" />
+          </div>
+        </div>
+      </div>
+
       {/* Premium Header */}
       <div className="bg-indigo-600 px-6 pt-12 pb-24 text-white rounded-b-[3rem] relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl" />
