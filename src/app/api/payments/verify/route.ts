@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { Timestamp, FieldValue } from "firebase-admin/firestore";
+import { sendTicketSMS } from "@/lib/afromessage/client";
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,10 +39,23 @@ export async function POST(req: NextRequest) {
 
     // Idempotency: If already processed, return current status
     if (paymentData.status !== "pending") {
+      // Fetch event name even for already processed payments
+      const eventSnap = await adminDb.collection("events").doc(paymentData.eventId).get();
+      const eventName = eventSnap.data()?.name || "Event";
+
       return NextResponse.json({ 
         success: paymentData.status === "success", 
         status: paymentData.status,
-        chapaDetails: paymentData.chapaDetails
+        chapaDetails: paymentData.chapaDetails,
+        receiptDetails: {
+          eventName,
+          ticketNumber: paymentData.ticketNumber,
+          buyerName: paymentData.buyerName,
+          buyerPhone: paymentData.buyerPhone,
+          amount: paymentData.amount,
+          tx_ref: tx_ref,
+          date: paymentData.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString()
+        }
       });
     }
 
@@ -53,6 +67,10 @@ export async function POST(req: NextRequest) {
         await paymentRef.update({ status: "failed", error: "Amount mismatch" });
         return NextResponse.json({ error: "Amount mismatch" }, { status: 400 });
       }
+
+      // Fetch event name for the receipt
+      const eventSnap = await adminDb.collection("events").doc(paymentData.eventId).get();
+      const eventName = eventSnap.data()?.name || "Event";
 
       // Update payment and ticket within a transaction for atomicity
       await adminDb.runTransaction(async (transaction) => {
@@ -83,6 +101,8 @@ export async function POST(req: NextRequest) {
             buyerEmail: paymentData.buyerEmail || "",
             soldAt: Timestamp.now(),
             updatedAt: Timestamp.now(),
+            reservationExpiresAt: null, // Clear expiration to keep index clean
+            paymentId: tx_ref, 
           });
 
           // Update event counters
@@ -95,26 +115,48 @@ export async function POST(req: NextRequest) {
         }
       });
 
+      // 4. Send SMS Notification (Async - don't block response)
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const receiptUrl = `${appUrl}/payment/success?tx_ref=${tx_ref}&eventId=${paymentData.eventId}`;
+      
+      sendTicketSMS({
+        buyerPhone: paymentData.buyerPhone,
+        buyerName: paymentData.buyerName,
+        eventName: eventName,
+        ticketNumber: paymentData.ticketNumber,
+        tx_ref: tx_ref,
+        receiptUrl: receiptUrl
+      }).catch(err => console.error("Failed to trigger SMS:", err));
+
       return NextResponse.json({ 
         success: true, 
         status: "success",
-        chapaDetails: chapaData.data
+        chapaDetails: chapaData.data,
+        receiptDetails: {
+          eventName,
+          ticketNumber: paymentData.ticketNumber,
+          buyerName: paymentData.buyerName,
+          buyerPhone: paymentData.buyerPhone,
+          amount: paymentData.amount,
+          tx_ref: tx_ref,
+          date: new Date().toISOString()
+        }
       });
     } else {
       // 4. Handle failure
+      // ... (rest of the code)
       await paymentRef.update({
         status: "failed",
         updatedAt: Timestamp.now(),
         chapaDetails: chapaData.data || chapaData,
       });
 
+      // Fetch event for reverting counters
+      const eventSnap = await adminDb.collection("events").doc(paymentData.eventId).get();
+      const eventName = eventSnap.data()?.name || "Event";
+
       // Revert ticket to available
-      const ticketsQuery = adminDb
-        .collection("tickets")
-        .where("eventId", "==", paymentData.eventId)
-        .where("ticketNumber", "==", paymentData.ticketNumber)
-        .limit(1);
-      
+      // ...
       const ticketsSnap = await adminDb.collection("tickets")
         .where("eventId", "==", paymentData.eventId)
         .where("ticketNumber", "==", paymentData.ticketNumber)
@@ -135,7 +177,19 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      return NextResponse.json({ success: false, status: "failed" });
+      return NextResponse.json({ 
+        success: false, 
+        status: "failed",
+        receiptDetails: {
+          eventName,
+          ticketNumber: paymentData.ticketNumber,
+          buyerName: paymentData.buyerName,
+          buyerPhone: paymentData.buyerPhone,
+          amount: paymentData.amount,
+          tx_ref: tx_ref,
+          date: new Date().toISOString()
+        }
+      });
     }
   } catch (error: any) {
     console.error("Payment Verify Error:", error);

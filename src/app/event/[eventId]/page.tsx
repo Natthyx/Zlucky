@@ -12,6 +12,7 @@ import { Loader2, Ticket as TicketIcon, CheckCircle2, Trophy, Sparkles, XCircle 
 import { formatCurrency, maskPhoneNumber } from "@/lib/utils";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Navbar } from "@/components/layout/Navbar";
 
 interface PublicEventPageProps {
   params: Promise<{ eventId: string }>;
@@ -25,30 +26,42 @@ export default function PublicEventPage({ params }: PublicEventPageProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [winners, setWinners] = useState<Winner[]>([]);
 
-  useEffect(() => {
-    async function fetchEvent() {
-      try {
-        const snap = await getDoc(doc(db, "events", eventId));
-        if (snap.exists()) {
-          const data = { id: snap.id, ...snap.data() } as Event;
-          setEvent(data);
+  const fetchEvent = async () => {
+    try {
+      const snap = await getDoc(doc(db, "events", eventId));
+      if (snap.exists()) {
+        const data = { id: snap.id, ...snap.data() } as Event;
+        setEvent(data);
 
-          if (data.status === "completed" || data.isWinnerGenerated) {
-            const winnersRes = await fetch(`/api/admin/events/${eventId}/winners`);
-            const winnersResult = await winnersRes.json();
-            if (winnersResult.success) {
-              setWinners(winnersResult.data);
-            }
+        if (data.status === "completed" || data.isWinnerGenerated) {
+          const winnersRes = await fetch(`/api/admin/events/${eventId}/winners`);
+          const winnersResult = await winnersRes.json();
+          if (winnersResult.success) {
+            setWinners(winnersResult.data);
           }
         }
-      } catch (error) {
-        console.error("Fetch event error:", error);
-      } finally {
-        setLoading(false);
       }
+    } catch (error) {
+      console.error("Fetch event error:", error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     fetchEvent();
   }, [eventId]);
+
+  // Auto-cleanup on mount to handle expired reservations
+  useEffect(() => {
+    fetch("/api/cleanup", { method: "POST" })
+      .then(() => {
+        // Re-fetch event data after cleanup to ensure counters are accurate
+        console.log("Cleanup complete, refreshing data...");
+        fetchEvent();
+      })
+      .catch(err => console.error("Auto-cleanup failed:", err));
+  }, []);
 
   const handleTicketSelect = (ticket: Ticket) => {
     setSelectedTicket(ticket);
@@ -119,19 +132,6 @@ export default function PublicEventPage({ params }: PublicEventPageProps) {
 
   return (
     <main className="min-h-screen bg-slate-50 pb-20">
-      {/* Branding Bar */}
-      <div className="bg-slate-900 py-3 px-6 relative z-30">
-        <div className="max-w-xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Zlucky" className="h-8 rounded-lg" />
-            <span className="text-xl font-black text-white tracking-tighter italic">ZLUCKY</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Created by</span>
-            <img src="/sms_logo.png" alt="SMS Technologies" className="h-5 brightness-110" />
-          </div>
-        </div>
-      </div>
 
       {/* Premium Header */}
       <div className="bg-indigo-600 px-6 pt-12 pb-24 text-white rounded-b-[3rem] relative overflow-hidden">
@@ -193,7 +193,7 @@ export default function PublicEventPage({ params }: PublicEventPageProps) {
                 </div>
 
                 <div className="pt-4">
-                  <Link href="/">
+                  <Link href="/events">
                     <Button className="w-full h-14 rounded-2xl font-black uppercase italic tracking-tight shadow-xl shadow-indigo-100 border-none bg-indigo-600 text-white">
                       Explore More Events
                     </Button>

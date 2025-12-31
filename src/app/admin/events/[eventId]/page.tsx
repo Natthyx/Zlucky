@@ -18,6 +18,18 @@ import {
   CreditCard
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Event, Ticket, Winner } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { WinnerGenerator } from "@/components/admin/WinnerGenerator";
@@ -79,34 +91,37 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
     fetchData();
   }, [user, eventId]);
 
+  /* 
+    Refactored Actions to use Toasts and Dialogs. 
+    Note: The actual Dialog UI is rendered below in the JSX.
+  */
   const deleteEvent = async () => {
-    if (!user || !confirm("Are you sure you want to PERMANENTLY delete this event? This will delete all tickets associated with it.")) return;
-    
     setActionLoading(true);
     try {
+      if (!user) return;
       const idToken = await user.getIdToken();
       const res = await fetch(`/api/admin/events/${eventId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${idToken}` },
       });
       if (res.ok) {
+        toast.success("Event deleted successfully");
         window.location.href = "/admin/events";
       } else {
-        alert("Failed to delete event");
+        toast.error("Failed to delete event");
       }
     } catch (err) {
       console.error(err);
-      alert("Error deleting event");
+      toast.error("Error deleting event");
     } finally {
       setActionLoading(false);
     }
   };
 
   const completeEvent = async () => {
-    if (!user || !confirm("Mark this event as completed? This will stop all ticket sales.")) return;
-    
     setActionLoading(true);
     try {
+      if (!user) return;
       const idToken = await user.getIdToken();
       const res = await fetch(`/api/admin/events/${eventId}`, {
         method: "PATCH",
@@ -118,12 +133,13 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
       });
       if (res.ok) {
         setEvent(prev => prev ? { ...prev, status: "completed" } : null);
+        toast.success("Event marked as completed");
       } else {
-        alert("Failed to complete event");
+        toast.error("Failed to complete event");
       }
     } catch (err) {
       console.error(err);
-      alert("Error completing event");
+      toast.error("Error completing event");
     } finally {
       setActionLoading(false);
     }
@@ -167,23 +183,58 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
         
         <div className="flex flex-wrap gap-3 w-full md:w-auto">
           {event.status !== "completed" && (
-            <Button 
-              variant="outline" 
-              className="text-amber-600 border-amber-200 hover:bg-amber-50 rounded-xl font-bold tracking-tight h-12"
-              onClick={completeEvent}
-              disabled={actionLoading}
-            >
-              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Complete Event"}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="text-amber-600 border-amber-200 hover:bg-amber-50 rounded-xl font-bold tracking-tight h-12"
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Complete Event"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will mark the event as completed and stop all ticket sales immediately. This action cannot be easily undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={completeEvent} className="bg-amber-600 hover:bg-amber-700">
+                    Mark as Completed
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
-          <Button 
-            variant="outline" 
-            className="text-rose-600 border-rose-100 hover:bg-rose-50 rounded-xl font-bold tracking-tight h-12"
-            onClick={deleteEvent}
-            disabled={actionLoading}
-          >
-            {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete Event"}
-          </Button>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                className="text-rose-600 border-rose-100 hover:bg-rose-50 rounded-xl font-bold tracking-tight h-12"
+                disabled={actionLoading}
+              >
+                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete Event"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the event and all associated tickets from the database.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={deleteEvent} className="bg-rose-600 hover:bg-rose-700">
+                  Delete Event
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           <Link href={event.publicEventUrl} target="_blank" className="flex-1 md:flex-none">
             <Button variant="outline" className="w-full rounded-xl gap-2 font-bold tracking-tight h-12">

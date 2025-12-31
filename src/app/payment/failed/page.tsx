@@ -10,6 +10,7 @@ import { Suspense } from "react";
 function FailedContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+  const eventId = searchParams.get("eventId");
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
@@ -42,10 +43,10 @@ function FailedContent() {
               Try Again
             </Button>
             
-            <Link href="/" className="block">
+            <Link href={eventId ? `/event/${eventId}` : "/"} className="block">
               <Button variant="ghost" className="w-full h-12 rounded-xl text-slate-500 gap-2">
                 <Home className="w-4 h-4" />
-                Go to Homepage
+                {eventId ? "Back to Event" : "Go to Homepage"}
               </Button>
             </Link>
           </div>

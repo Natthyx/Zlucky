@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { chapa } from "@/lib/chapa/client";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
-import { isValidEmail, isValidEthiopianPhone } from "@/lib/utils";
+import { isValidEmail, isValidEthiopianPhone, normalizeEthiopianPhone } from "@/lib/utils";
 
 export async function POST(
   req: NextRequest,
@@ -19,11 +19,9 @@ export async function POST(
     }
 
     // Robust Normalization for Ethiopian numbers
-    let normalizedPhone = buyerPhone.replace(/[\s\-\(\)\+]/g, "");
-    if (normalizedPhone.startsWith("251")) {
-      normalizedPhone = "0" + normalizedPhone.slice(3);
-    } else if (normalizedPhone.length === 9 && (normalizedPhone.startsWith("9") || normalizedPhone.startsWith("7"))) {
-      normalizedPhone = "0" + normalizedPhone;
+    const normalizedPhone = normalizeEthiopianPhone(buyerPhone);
+    if (!normalizedPhone) {
+      return NextResponse.json({ error: "Invalid Ethiopian phone number format" }, { status: 400 });
     }
 
     if (!isValidEmail(buyerEmail)) {
@@ -121,7 +119,7 @@ export async function POST(
         return_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?tx_ref=${result.paymentId}`,
         customization: {
           title: result.eventName,
-          description: `Ticket ${ticketNumber}`,
+          description: `Ticket ${ticketNumber} for ${buyerName}`.replace(/[^a-zA-Z0-9\s._-]/g, ""),
         },
       });
 

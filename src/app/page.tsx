@@ -1,3 +1,5 @@
+import { Footer } from "@/components/layout/Footer";
+import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Ticket, Trophy, Smartphone, ShieldCheck, ArrowRight } from "lucide-react";
@@ -6,20 +8,7 @@ import Link from "next/link";
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-slate-50 overflow-hidden">
-      {/* Branding Bar */}
-      <div className="bg-slate-900 py-3 px-6 relative z-30">
-        <div className="max-w-xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Zlucky" className="h-8 rounded-lg" />
-            <span className="text-xl font-black text-white tracking-tighter italic">LUCKY</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Created by</span>
-            <img src="/sms_logo.png" alt="SMS Technologies" className="h-5 brightness-110" />
-          </div>
-        </div>
-      </div>
-
+      <Navbar />
       {/* Premium Hero Section */}
       <section className="relative pt-20 pb-32 px-6 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] bg-indigo-600/5 rounded-full blur-3xl pointer-events-none -mt-[500px]" />
@@ -43,6 +32,11 @@ export default function LandingPage() {
             <Link href="/admin/auth/login" className="w-full sm:w-auto">
               <Button className="w-full sm:w-64 h-16 rounded-3xl text-xl font-black italic uppercase tracking-tight shadow-indigo-200 shadow-2xl gap-3">
                 Create Event <ArrowRight className="w-6 h-6" />
+              </Button>
+            </Link>
+            <Link href="/events" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-64 h-16 rounded-3xl text-xl font-black text-indigo-600 italic uppercase tracking-tight border-2 border-indigo-600 hover:border-indigo-600 hover:text-indigo-600 transition-all gap-3">
+                Browse Events <Ticket className="w-6 h-6" />
               </Button>
             </Link>
           </div>
@@ -69,20 +63,7 @@ export default function LandingPage() {
           ))}
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="py-12 px-6 border-t border-slate-100 text-center">
-        <div className="flex items-center justify-center gap-2 mb-4">
-           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-black text-xl italic">Z</span>
-            </div>
-            <span className="font-black text-2xl tracking-tighter text-slate-900 italic uppercase">Lucky</span>
-        </div>
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-loose">
-          Secure. Transparent. Fun. <br />
-          © 2025 Zlucky • Created by SMS Technologies.
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 }
