@@ -29,7 +29,10 @@ export async function POST(req: NextRequest) {
     // 3. Create Event Document (Initial)
     const eventRef = adminDb.collection("events").doc();
     const eventId = eventRef.id;
-    const publicEventUrl = `${process.env.NEXT_PUBLIC_APP_URL}/event/${eventId}`;
+    
+    // Dynamic Base URL: Use request origin (works for localhost & prod)
+    const origin = req.nextUrl.origin;
+    const publicEventUrl = `${origin}/event/${eventId}`;
 
     // 4. Generate QR Code
     const { qrCodeUrl, storagePath } = await generateAndUploadQR(eventId, publicEventUrl);
